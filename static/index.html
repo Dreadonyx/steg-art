@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Steg·Art</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- animated background -->
+  <canvas id="bg-canvas"></canvas>
+
+  <div class="app">
+
+    <!-- header -->
+    <header>
+      <div class="logo">
+        <span class="logo-icon">◈</span>
+        <span class="logo-text">Steg<span class="accent">·</span>Art</span>
+      </div>
+      <p class="tagline">Hide secrets inside AI-generated art</p>
+      <div class="status-bar" id="status-bar">
+        <span class="dot" id="dot-groq"></span><span>Groq</span>
+        <span class="dot" id="dot-gemini"></span><span>Gemini</span>
+        <span class="dot" id="dot-or"></span><span>OpenRouter</span>
+      </div>
+    </header>
+
+    <!-- tabs -->
+    <div class="tabs">
+      <button class="tab active" data-tab="encode">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>
+        Encode
+      </button>
+      <button class="tab" data-tab="decode">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Decode
+      </button>
+    </div>
+
+    <!-- encode panel -->
+    <div class="panel active" id="panel-encode">
+      <div class="form-grid">
+
+        <div class="field">
+          <label>Secret Message</label>
+          <textarea id="enc-message" rows="3" placeholder="The message to hide inside the art..."></textarea>
+          <span class="char-count" id="char-count">0 / ~2000 chars</span>
+        </div>
+
+        <div class="field">
+          <label>Art Style</label>
+          <input type="text" id="enc-style" placeholder="e.g. dark forest, oil painting, dramatic fog..." />
+        </div>
+
+        <div class="field">
+          <label>Extra Details <span class="optional">(optional)</span></label>
+          <input type="text" id="enc-extra" placeholder="e.g. moonlight, ancient ruins, red sky..." />
+        </div>
+
+        <button class="btn-primary" id="btn-encode">
+          <span class="btn-text">Generate Art</span>
+          <span class="btn-icon">✦</span>
+        </button>
+
+      </div>
+
+      <!-- result -->
+      <div class="result hidden" id="encode-result">
+        <div class="result-image-wrap">
+          <img id="result-img" src="" alt="Generated Art" />
+          <div class="image-overlay">
+            <span class="hidden-badge">◈ Message hidden inside</span>
+          </div>
+        </div>
+        <div class="result-meta">
+          <div class="meta-box">
+            <span class="meta-label">Enhanced Prompt</span>
+            <p class="meta-value" id="meta-prompt"></p>
+          </div>
+          <div class="meta-row">
+            <div class="meta-box small">
+              <span class="meta-label">File Size</span>
+              <span class="meta-value" id="meta-size"></span>
+            </div>
+            <div class="meta-box small">
+              <span class="meta-label">Format</span>
+              <span class="meta-value">PNG (lossless)</span>
+            </div>
+          </div>
+          <button class="btn-secondary" id="btn-download">
+            ↓ Download Image
+          </button>
+        </div>
+      </div>
+
+      <div class="loader hidden" id="encode-loader">
+        <div class="loader-steps">
+          <div class="step" id="step-1">
+            <div class="step-dot"></div>
+            <span>Enhancing prompt with Groq...</span>
+          </div>
+          <div class="step" id="step-2">
+            <div class="step-dot"></div>
+            <span>Generating art with Gemini...</span>
+          </div>
+          <div class="step" id="step-3">
+            <div class="step-dot"></div>
+            <span>Embedding message with LSB steg...</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="error-box hidden" id="encode-error"></div>
+    </div>
+
+    <!-- decode panel -->
+    <div class="panel hidden" id="panel-decode">
+      <div class="drop-zone" id="drop-zone">
+        <div class="drop-icon">◈</div>
+        <p>Drop a Steg·Art image here</p>
+        <span>or click to browse</span>
+        <input type="file" id="decode-file" accept="image/*" hidden />
+      </div>
+
+      <div class="decode-preview hidden" id="decode-preview">
+        <img id="decode-img" src="" alt="Uploaded image" />
+      </div>
+
+      <button class="btn-primary hidden" id="btn-decode">
+        <span class="btn-text">Reveal Secret</span>
+        <span class="btn-icon">◈</span>
+      </button>
+
+      <div class="loader hidden" id="decode-loader">
+        <div class="loader-steps">
+          <div class="step" id="dec-step-1">
+            <div class="step-dot"></div>
+            <span>Reading LSB channels...</span>
+          </div>
+          <div class="step" id="dec-step-2">
+            <div class="step-dot"></div>
+            <span>Reconstructing message...</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="decode-result hidden" id="decode-result">
+        <div class="reveal-animation">
+          <span class="reveal-label">◈ Hidden Message Revealed</span>
+          <p class="revealed-message" id="revealed-msg"></p>
+          <button class="btn-copy" id="btn-copy">Copy</button>
+        </div>
+      </div>
+
+      <div class="error-box hidden" id="decode-error"></div>
+    </div>
+
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
