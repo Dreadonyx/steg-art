@@ -193,6 +193,23 @@
     if (inputSpan) placeEnd(inputSpan);
   });
 
+  // ── bridge: called by app.js when sending image from encode/decode tabs ──
+  window.terminalSetSession = function (sid, name) {
+    sessionId = sid;
+    imageName = name;
+    imgLabel.textContent = `◈ ${name} — ready`;
+    imgLabel.classList.add('loaded');
+    termDrop.classList.add('loaded');
+
+    // refresh the current prompt if one exists
+    const lastPromptEl = termOutput.querySelector('.term-line:last-child .term-prompt');
+    if (lastPromptEl) lastPromptEl.textContent = getPrompt();
+
+    print(`── image loaded from tab: ${name} ──`, 'term-info');
+    print('Type  help  for available commands.', 'term-dim');
+    scrollBottom();
+  };
+
   // ── init ──────────────────────────────────────────────────────────────────
   print('steg-art terminal  —  drop an image above to get started', 'term-dim');
   createPromptLine();

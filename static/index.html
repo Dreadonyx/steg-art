@@ -65,6 +65,19 @@
           <input type="text" id="enc-extra" placeholder="e.g. moonlight, ancient ruins, red sky..." />
         </div>
 
+        <div class="field">
+          <label>Hide Region <span class="optional">(where in the image)</span></label>
+          <div class="region-picker" id="region-picker">
+            <button class="region-cell" data-region="top-left" title="Top-left quadrant">↖</button>
+            <button class="region-cell" data-region="top-right" title="Top-right quadrant">↗</button>
+            <button class="region-cell active" data-region="full" title="Full image (default)">◈ Full</button>
+            <button class="region-cell" data-region="center" title="Center 50%">⊙ Center</button>
+            <button class="region-cell" data-region="bottom-left" title="Bottom-left quadrant">↙</button>
+            <button class="region-cell" data-region="bottom-right" title="Bottom-right quadrant">↘</button>
+          </div>
+          <input type="hidden" id="enc-region" value="full" />
+        </div>
+
         <button class="btn-primary" id="btn-encode">
           <span class="btn-text">Generate Art</span>
           <span class="btn-icon">✦</span>
@@ -91,13 +104,17 @@
               <span class="meta-value" id="meta-size"></span>
             </div>
             <div class="meta-box small">
-              <span class="meta-label">Format</span>
-              <span class="meta-value">PNG (lossless)</span>
+              <span class="meta-label">Hidden Region</span>
+              <span class="meta-value" id="meta-region">full</span>
             </div>
           </div>
-          <button class="btn-secondary" id="btn-download">
-            ↓ Download Image
-          </button>
+          <div class="result-actions">
+            <button class="btn-secondary" id="btn-download">↓ Download</button>
+            <button class="btn-terminal-sm" id="btn-encode-to-terminal">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+              Analyze in Terminal
+            </button>
+          </div>
         </div>
       </div>
 
@@ -134,10 +151,29 @@
         <img id="decode-img" src="" alt="Uploaded image" />
       </div>
 
-      <button class="btn-primary hidden" id="btn-decode">
-        <span class="btn-text">Reveal Secret</span>
-        <span class="btn-icon">◈</span>
-      </button>
+      <div class="field hidden" id="dec-region-wrap">
+        <label>Region <span class="optional">(match what was used to encode)</span></label>
+        <div class="region-picker" id="dec-region-picker">
+          <button class="region-cell" data-region="top-left">↖</button>
+          <button class="region-cell" data-region="top-right">↗</button>
+          <button class="region-cell active" data-region="full">◈ Full</button>
+          <button class="region-cell" data-region="center">⊙ Center</button>
+          <button class="region-cell" data-region="bottom-left">↙</button>
+          <button class="region-cell" data-region="bottom-right">↘</button>
+        </div>
+        <input type="hidden" id="dec-region" value="full" />
+      </div>
+
+      <div class="decode-btn-row hidden" id="decode-btn-row">
+        <button class="btn-primary" id="btn-decode">
+          <span class="btn-text">Auto Decode (LSB)</span>
+          <span class="btn-icon">◈</span>
+        </button>
+        <button class="btn-terminal-sm" id="btn-decode-to-terminal">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+          Analyze in Terminal
+        </button>
+      </div>
 
       <div class="loader hidden" id="decode-loader">
         <div class="loader-steps">

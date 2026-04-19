@@ -4,6 +4,7 @@ Flow: message + style → Groq enhances prompt → HuggingFace FLUX → LSB embe
 """
 
 import os, base64, httpx, subprocess, uuid, tempfile as _tmp
+from fastapi import Form
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.staticfiles import StaticFiles
@@ -36,6 +37,7 @@ class EncodeRequest(BaseModel):
     message: str
     style: str
     extra_prompt: str = ""
+    region: str = "full"
 
 class TermRunRequest(BaseModel):
     session_id: str
@@ -140,12 +142,13 @@ async def encode(req: EncodeRequest):
     try:
         enhanced  = enhance_prompt(req.style, req.extra_prompt)
         print(f"[Prompt] {enhanced[:80]}...")
-        img_bytes = generate_image(enhanced)
-        steg_bytes = steg.embed(img_bytes, req.message)
+        img_bytes  = generate_image(enhanced)
+        steg_bytes = steg.embed(img_bytes, req.message, region=req.region)
         return JSONResponse({
-            "image_b64":      base64.b64encode(steg_bytes).decode(),
+            "image_b64":       base64.b64encode(steg_bytes).decode(),
             "enhanced_prompt": enhanced,
-            "image_size_kb":  round(len(steg_bytes) / 1024, 1),
+            "image_size_kb":   round(len(steg_bytes) / 1024, 1),
+            "region":          req.region,
         })
     except HTTPException:
         raise
@@ -154,12 +157,12 @@ async def encode(req: EncodeRequest):
 
 
 @app.post("/decode")
-async def decode(file: UploadFile = File(...)):
+async def decode(file: UploadFile = File(...), region: str = Form("full")):
     if not file.content_type.startswith("image/"):
         raise HTTPException(400, "Upload an image file.")
     img_bytes = await file.read()
     try:
-        result = steg.extract(img_bytes)
+        result = steg.extract(img_bytes, region=region)
         return JSONResponse(result)
     except ValueError as e:
         raise HTTPException(422, str(e))

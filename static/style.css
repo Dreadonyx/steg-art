@@ -559,6 +559,85 @@ input::placeholder, textarea::placeholder { color: var(--text3); }
   .meta-row { grid-template-columns: 1fr; }
 }
 
+/* ── region picker ───────────────────────────────────────────────────────── */
+.region-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.region-cell {
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  background: var(--bg3);
+  color: var(--text2);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.18s;
+  user-select: none;
+}
+
+.region-cell:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.region-cell.active {
+  background: rgba(124, 58, 255, 0.2);
+  border-color: var(--accent);
+  color: var(--accent2);
+  box-shadow: 0 0 8px rgba(124, 58, 255, 0.2);
+}
+
+/* ── result actions row ──────────────────────────────────────────────────── */
+.result-actions {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.result-actions .btn-secondary {
+  flex: 1;
+}
+
+/* ── decode button row ───────────────────────────────────────────────────── */
+.decode-btn-row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: stretch;
+  margin-top: 1rem;
+}
+
+.decode-btn-row .btn-primary {
+  flex: 1;
+  margin-top: 0;
+}
+
+/* ── terminal-style small button (used in encode result + decode row) ────── */
+.btn-terminal-sm {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--accent2);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-terminal-sm:hover {
+  background: rgba(124, 58, 255, 0.1);
+  border-color: var(--accent);
+}
+
 /* ── terminal panel ──────────────────────────────────────────────────────── */
 
 .term-loader {

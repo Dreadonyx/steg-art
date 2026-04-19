@@ -36,7 +36,6 @@
       if (p.y > H) p.y = 0;
     });
 
-    // draw faint lines between close particles
     for (let i = 0; i < particles.length; i++) {
       for (let j = i + 1; j < particles.length; j++) {
         const dx = particles[i].x - particles[j].x;
@@ -108,15 +107,56 @@ msgArea.addEventListener('input', () => {
 });
 
 
+/* ── region pickers ──────────────────────────────────────────────────────── */
+function setupRegionPicker(pickerId, hiddenId) {
+  const picker = document.getElementById(pickerId);
+  const hidden = document.getElementById(hiddenId);
+  if (!picker || !hidden) return;
+
+  picker.querySelectorAll('.region-cell').forEach(btn => {
+    btn.addEventListener('click', () => {
+      picker.querySelectorAll('.region-cell').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      hidden.value = btn.dataset.region;
+    });
+  });
+}
+
+setupRegionPicker('region-picker',     'enc-region');
+setupRegionPicker('dec-region-picker', 'dec-region');
+
+
+/* ── terminal bridge helper ──────────────────────────────────────────────── */
+async function sendToTerminal(b64data, filename) {
+  const blob = b64ToBlob(b64data, 'image/png');
+  const form = new FormData();
+  form.append('file', new File([blob], filename, { type: 'image/png' }));
+
+  try {
+    const resp = await fetch('/terminal/upload', { method: 'POST', body: form });
+    const data = await resp.json();
+    // hand off to terminal.js
+    if (window.terminalSetSession) {
+      window.terminalSetSession(data.session_id, data.filename);
+    }
+    // switch to terminal tab
+    document.querySelector('[data-tab="terminal"]').click();
+  } catch {
+    alert('Failed to send image to terminal.');
+  }
+}
+
+
 /* ── ENCODE ──────────────────────────────────────────────────────────────── */
-const btnEncode      = document.getElementById('btn-encode');
-const encodeLoader   = document.getElementById('encode-loader');
-const encodeResult   = document.getElementById('encode-result');
-const encodeError    = document.getElementById('encode-error');
-const resultImg      = document.getElementById('result-img');
-const metaPrompt     = document.getElementById('meta-prompt');
-const metaSize       = document.getElementById('meta-size');
-const btnDownload    = document.getElementById('btn-download');
+const btnEncode    = document.getElementById('btn-encode');
+const encodeLoader = document.getElementById('encode-loader');
+const encodeResult = document.getElementById('encode-result');
+const encodeError  = document.getElementById('encode-error');
+const resultImg    = document.getElementById('result-img');
+const metaPrompt   = document.getElementById('meta-prompt');
+const metaSize     = document.getElementById('meta-size');
+const metaRegion   = document.getElementById('meta-region');
+const btnDownload  = document.getElementById('btn-download');
 
 function setStep(id, state) {
   const el = document.getElementById(id);
@@ -125,28 +165,27 @@ function setStep(id, state) {
   if (state) el.classList.add(state);
 }
 
-let downloadUrl = null;
+let downloadUrl    = null;
+let lastEncodeB64  = null;
 
 btnEncode.addEventListener('click', async () => {
   const message = msgArea.value.trim();
   const style   = document.getElementById('enc-style').value.trim();
   const extra   = document.getElementById('enc-extra').value.trim();
+  const region  = document.getElementById('enc-region').value;
 
   if (!message) return showError(encodeError, 'Please enter a secret message.');
   if (!style)   return showError(encodeError, 'Please describe an art style.');
 
-  // reset UI
   encodeError.classList.add('hidden');
   encodeResult.classList.add('hidden');
   encodeLoader.classList.remove('hidden');
   btnEncode.disabled = true;
 
-  // step 1 active
   setStep('step-1', 'active');
   setStep('step-2', null);
   setStep('step-3', null);
 
-  // fake step timing (server does steps 1→2→3 atomically, so we animate)
   const stepTimer1 = setTimeout(() => {
     setStep('step-1', 'done');
     setStep('step-2', 'active');
@@ -161,7 +200,7 @@ btnEncode.addEventListener('click', async () => {
     const resp = await fetch('/encode', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message, style, extra_prompt: extra }),
+      body: JSON.stringify({ message, style, extra_prompt: extra, region }),
     });
 
     clearTimeout(stepTimer1);
@@ -173,6 +212,7 @@ btnEncode.addEventListener('click', async () => {
     }
 
     const data = await resp.json();
+    lastEncodeB64 = data.image_b64;
 
     setStep('step-1', 'done');
     setStep('step-2', 'done');
@@ -185,8 +225,8 @@ btnEncode.addEventListener('click', async () => {
       resultImg.src = imgSrc;
       metaPrompt.textContent = data.enhanced_prompt;
       metaSize.textContent   = `${data.image_size_kb} KB`;
+      metaRegion.textContent = data.region || region;
 
-      // download button
       if (downloadUrl) URL.revokeObjectURL(downloadUrl);
       const blob = b64ToBlob(data.image_b64, 'image/png');
       downloadUrl = URL.createObjectURL(blob);
@@ -210,18 +250,25 @@ btnEncode.addEventListener('click', async () => {
   }
 });
 
+// "Analyze in Terminal" from encode result
+document.getElementById('btn-encode-to-terminal').addEventListener('click', () => {
+  if (lastEncodeB64) sendToTerminal(lastEncodeB64, `steg-art-${Date.now()}.png`);
+});
+
 
 /* ── DECODE ──────────────────────────────────────────────────────────────── */
-const dropZone     = document.getElementById('drop-zone');
-const decodeFile   = document.getElementById('decode-file');
+const dropZone      = document.getElementById('drop-zone');
+const decodeFile    = document.getElementById('decode-file');
 const decodePreview = document.getElementById('decode-preview');
-const decodeImg    = document.getElementById('decode-img');
-const btnDecode    = document.getElementById('btn-decode');
-const decodeLoader = document.getElementById('decode-loader');
-const decodeResult = document.getElementById('decode-result');
-const decodeError  = document.getElementById('decode-error');
-const revealedMsg  = document.getElementById('revealed-msg');
-const btnCopy      = document.getElementById('btn-copy');
+const decodeImg     = document.getElementById('decode-img');
+const btnDecode     = document.getElementById('btn-decode');
+const decodeBtnRow  = document.getElementById('decode-btn-row');
+const decRegionWrap = document.getElementById('dec-region-wrap');
+const decodeLoader  = document.getElementById('decode-loader');
+const decodeResult  = document.getElementById('decode-result');
+const decodeError   = document.getElementById('decode-error');
+const revealedMsg   = document.getElementById('revealed-msg');
+const btnCopy       = document.getElementById('btn-copy');
 
 let selectedFile = null;
 
@@ -231,7 +278,8 @@ function loadPreview(file) {
   reader.onload = e => {
     decodeImg.src = e.target.result;
     decodePreview.classList.remove('hidden');
-    btnDecode.classList.remove('hidden');
+    decodeBtnRow.classList.remove('hidden');
+    decRegionWrap.classList.remove('hidden');
     decodeResult.classList.add('hidden');
     decodeError.classList.add('hidden');
   };
@@ -272,6 +320,7 @@ btnDecode.addEventListener('click', async () => {
 
   const form = new FormData();
   form.append('file', selectedFile);
+  form.append('region', document.getElementById('dec-region').value);
 
   try {
     const resp = await fetch('/decode', { method: 'POST', body: form });
@@ -290,20 +339,20 @@ btnDecode.addEventListener('click', async () => {
       decodeLoader.classList.add('hidden');
       revealedMsg.textContent = data.message;
 
-      // render metadata
-      const m = data.meta;
+      const m    = data.meta;
       const grid = document.getElementById('steg-meta-grid');
       grid.innerHTML = '';
       const rows = [
-        ['Method',      m.method,                         false],
-        ['Bit planes',  m.bit_planes,                     true],
-        ['Channels',    m.channels.join(', '),             false],
-        ['Image size',  m.image_size,                     false],
-        ['Pixel range', m.pixel_range,                    false],
-        ['Row range',   m.row_range,                      false],
+        ['Method',      m.method,                                                   false],
+        ['Region',      m.region,                                                   false],
+        ['Bit planes',  m.bit_planes,                                               true],
+        ['Channels',    m.channels.join(', '),                                      false],
+        ['Image size',  m.image_size,                                               false],
+        ['Pixel range', m.pixel_range,                                              false],
+        ['Row range',   m.row_range,                                                false],
         ['Pixels used', `${m.pixels_used.toLocaleString()} / ${m.total_pixels.toLocaleString()} (${m.pct_used}%)`, true],
-        ['Bits used',   `${m.bits_used} bits = ${m.bytes_used} bytes`, true],
-        ['Capacity',    `~${m.capacity_chars.toLocaleString()} chars max`, false],
+        ['Bits used',   `${m.bits_used} bits = ${m.bytes_used} bytes`,              true],
+        ['Capacity',    `~${m.capacity_chars.toLocaleString()} chars max`,          false],
       ];
       rows.forEach(([k, v, full]) => {
         const el = document.createElement('div');
@@ -322,6 +371,17 @@ btnDecode.addEventListener('click', async () => {
   } finally {
     btnDecode.disabled = false;
   }
+});
+
+// "Analyze in Terminal" from decode tab
+document.getElementById('btn-decode-to-terminal').addEventListener('click', () => {
+  if (!selectedFile) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const b64 = e.target.result.split(',')[1];
+    sendToTerminal(b64, selectedFile.name);
+  };
+  reader.readAsDataURL(selectedFile);
 });
 
 btnCopy.addEventListener('click', () => {
