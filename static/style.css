@@ -484,6 +484,54 @@ input::placeholder, textarea::placeholder { color: var(--text3); }
   word-break: break-word;
 }
 
+/* ── steg metadata ───────────────────────────────────────────────────────── */
+.steg-meta {
+  margin-top: 1rem;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+}
+
+.meta-heading {
+  display: block;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent2);
+  font-family: 'Space Mono', monospace;
+  font-weight: 600;
+  margin-bottom: 0.9rem;
+}
+
+.steg-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem 1rem;
+}
+
+.steg-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.steg-meta-item .k {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text3);
+  font-weight: 600;
+}
+
+.steg-meta-item .v {
+  font-size: 0.85rem;
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+}
+
+.steg-meta-item.full { grid-column: 1 / -1; }
+
 /* ── error ───────────────────────────────────────────────────────────────── */
 .error-box {
   margin-top: 1rem;
@@ -510,3 +558,119 @@ input::placeholder, textarea::placeholder { color: var(--text3); }
   .logo { font-size: 1.7rem; }
   .meta-row { grid-template-columns: 1fr; }
 }
+
+/* ── terminal panel ──────────────────────────────────────────────────────── */
+
+.term-loader {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: var(--bg2);
+  border: 1px dashed var(--border2);
+  border-radius: var(--radius);
+  padding: 0.75rem 1.1rem;
+  margin-bottom: 1rem;
+  cursor: pointer;
+  font-size: 0.86rem;
+  color: var(--text2);
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.term-loader:hover,
+.term-loader.drag-over {
+  border-color: var(--accent);
+  background: rgba(124, 58, 255, 0.06);
+  box-shadow: 0 0 20px rgba(124, 58, 255, 0.08);
+}
+
+.term-loader svg { color: var(--accent2); flex-shrink: 0; }
+
+.term-loader.loaded { border-style: solid; border-color: var(--border); }
+
+#term-img-label.loaded { color: var(--green); }
+
+/* ── terminal window ─────────────────────────────────────────────────────── */
+
+.term-wrap {
+  background: #050508;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  font-family: 'Space Mono', monospace;
+}
+
+.term-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1rem;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+}
+
+.term-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.term-dot-red    { background: #ff5f57; }
+.term-dot-yellow { background: #ffbd2e; }
+.term-dot-green  { background: #28c840; }
+
+.term-title {
+  margin-left: 0.4rem;
+  font-size: 0.76rem;
+  color: var(--text3);
+  letter-spacing: 0.02em;
+}
+
+.term-body {
+  padding: 1rem 1.1rem;
+  min-height: 380px;
+  max-height: 520px;
+  overflow-y: auto;
+  font-size: 0.81rem;
+  line-height: 1.65;
+  color: #c8c0e8;
+  cursor: text;
+}
+
+/* ── terminal lines ──────────────────────────────────────────────────────── */
+
+.term-line {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 0.15rem;
+}
+
+.term-prompt {
+  color: var(--accent2);
+  white-space: pre;
+  flex-shrink: 0;
+}
+
+.term-input {
+  color: #fff;
+  flex: 1;
+  outline: none;
+  white-space: pre-wrap;
+  word-break: break-all;
+  caret-color: var(--accent2);
+  min-width: 2px;
+}
+
+/* ── terminal output lines ───────────────────────────────────────────────── */
+
+.term-out {
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #c8c0e8;
+  margin: 0.05rem 0;
+}
+
+.term-err { color: #f87171; }
+.term-info { color: var(--accent2); }
+.term-dim  { color: var(--text3); }

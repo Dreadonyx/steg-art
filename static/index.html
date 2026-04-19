@@ -39,6 +39,10 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         Decode
       </button>
+      <button class="tab" data-tab="terminal">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+        Terminal
+      </button>
     </div>
 
     <!-- encode panel -->
@@ -154,13 +158,41 @@
           <p class="revealed-message" id="revealed-msg"></p>
           <button class="btn-copy" id="btn-copy">Copy</button>
         </div>
+        <div class="steg-meta" id="steg-meta">
+          <span class="meta-heading">◈ Where it was hidden</span>
+          <div class="steg-meta-grid" id="steg-meta-grid"></div>
+        </div>
       </div>
 
       <div class="error-box hidden" id="decode-error"></div>
     </div>
 
+    <!-- terminal panel -->
+    <div class="panel hidden" id="panel-terminal">
+
+      <!-- image loader strip -->
+      <div class="term-loader" id="term-drop">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <span id="term-img-label">Drop or click to load image for analysis</span>
+        <input type="file" id="term-file" accept="image/*" hidden />
+      </div>
+
+      <!-- terminal window -->
+      <div class="term-wrap">
+        <div class="term-titlebar">
+          <span class="term-dot term-dot-red"></span>
+          <span class="term-dot term-dot-yellow"></span>
+          <span class="term-dot term-dot-green"></span>
+          <span class="term-title">steg@art — terminal</span>
+        </div>
+        <div class="term-body" id="term-output"></div>
+      </div>
+
+    </div>
+
   </div>
 
   <script src="/static/app.js"></script>
+  <script src="/static/terminal.js"></script>
 </body>
 </html>

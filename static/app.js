@@ -289,6 +289,29 @@ btnDecode.addEventListener('click', async () => {
     setTimeout(() => {
       decodeLoader.classList.add('hidden');
       revealedMsg.textContent = data.message;
+
+      // render metadata
+      const m = data.meta;
+      const grid = document.getElementById('steg-meta-grid');
+      grid.innerHTML = '';
+      const rows = [
+        ['Method',      m.method,                         false],
+        ['Bit planes',  m.bit_planes,                     true],
+        ['Channels',    m.channels.join(', '),             false],
+        ['Image size',  m.image_size,                     false],
+        ['Pixel range', m.pixel_range,                    false],
+        ['Row range',   m.row_range,                      false],
+        ['Pixels used', `${m.pixels_used.toLocaleString()} / ${m.total_pixels.toLocaleString()} (${m.pct_used}%)`, true],
+        ['Bits used',   `${m.bits_used} bits = ${m.bytes_used} bytes`, true],
+        ['Capacity',    `~${m.capacity_chars.toLocaleString()} chars max`, false],
+      ];
+      rows.forEach(([k, v, full]) => {
+        const el = document.createElement('div');
+        el.className = 'steg-meta-item' + (full ? ' full' : '');
+        el.innerHTML = `<span class="k">${k}</span><span class="v">${v}</span>`;
+        grid.appendChild(el);
+      });
+
       decodeResult.classList.remove('hidden');
     }, 300);
 
