@@ -2,8 +2,6 @@ fastapi
 uvicorn
 pillow
 groq
-google-genai
 python-multipart
 python-dotenv
-requests
 httpx

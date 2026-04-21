@@ -68,7 +68,7 @@ async function checkHealth() {
     const r = await fetch('/health');
     const d = await r.json();
     dot('dot-groq',   d.groq);
-    dot('dot-gemini', d.gemini);
+    dot('dot-gemini', d.huggingface);
     dot('dot-or',     d.openrouter);
   } catch { /* silent */ }
 }
