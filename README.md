@@ -1,4 +1,4 @@
-# steg-art 🎨
+# steg-art 
 
 > Hide messages inside AI-generated art. The image looks normal. The secret isn't.
 
